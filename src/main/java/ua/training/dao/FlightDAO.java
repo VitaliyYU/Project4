@@ -5,16 +5,29 @@ import ua.training.entity.Flight;
 import java.sql.Date;
 import java.util.List;
 
-/**
- * Created by vitaliy on 23.05.17.
- */
+
 public interface FlightDAO {
+    /**
+     * write to db new Flight
+      * @param newFlight new Flight
+     */
     void create(Flight newFlight);
-    Flight findById(Integer id);
-    List<Flight> findByDepartureAndDestinationAndDate(String departure, String destination, Date date);
-    List<Flight> findByDepartureAndDestination(String departure, String destination);
+
+    /**
+     *
+     * @param departure start town where you want to start voyage
+     * @param destination you end  town
+     * @param date date of start flight
+     * @return list where flight  has  parameter @{departure},{@destination} and  {@date}
+     */
+    List<Flight> find(String departure, String destination, Date date);
+    List<Flight> find(String departure, String destination);
+
+    /**
+     * find all active flight
+     * @return
+     */
     List<Flight> findAll();
-    Flight findByCode(String code);
     void update(Flight updateFlight);
     void delete(Integer id);
 

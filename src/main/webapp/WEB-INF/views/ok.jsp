@@ -10,19 +10,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title><fmt:message bundle="${msg}" key="title"/></title>
+    <title><fmt:message bundle="${msg}" key="Ok"/></title>
 </head>
 <body>
-<form>
+<form method="post">
     <input type="hidden" name="command" value="LogOut"/>
     <button type="submit"><fmt:message bundle="${msg}" key="LogOut"/></button>
 </form>
-<form name="addWallet" method="post"  >
-    <label for="name-box" ><fmt:message bundle="${msg}" key="code"/></label><br/>
-    <input name="code" id="name-box" type="text" size="40"/><br/>
-    <input type="hidden" name="command" value="addWallet"/>
-    <button type="submit"><fmt:message bundle="${msg}" key="submit"/></button>
+<fmt:message bundle="${msg}" key="totalCost"/> =${cost}, <fmt:message bundle="${msg}" key="congratulate"/>!
+<form method="post">
+<input type="hidden" name="command" value="showFlight">
+<button type="submit"><fmt:message bundle="${msg}" key="toFlights"/></button>
 </form>
-<c:if test="${error!=null}">${error}</c:if>
 </body>
 </html>

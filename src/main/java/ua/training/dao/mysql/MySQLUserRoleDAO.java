@@ -1,5 +1,7 @@
 package ua.training.dao.mysql;
 
+import org.apache.log4j.Logger;
+import ua.training.constant.Query;
 import ua.training.dao.UserRoleDAO;
 import ua.training.database.ConnectionFactory;
 import ua.training.entity.UserRole;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MySQLUserRoleDAO implements UserRoleDAO {
+    private static final Logger log=Logger.getLogger(MySQLUserRoleDAO.class);
 
     private ConnectionFactory connectionFactory;
     private static MySQLUserRoleDAO userRoleDAO=new MySQLUserRoleDAO();
@@ -26,43 +29,33 @@ public class MySQLUserRoleDAO implements UserRoleDAO {
 
     @Override
     public void create(UserRole newUserRole) {
-        String insertUserRole="insert into user_role(role_name) values(?)";
-
+        log.info("begin creating new  User role"+newUserRole);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(insertUserRole);
+
+            PreparedStatement statement=connection.prepareStatement(Query.INSERT_USER_ROLE);
+
             setUserRoleInStatement(statement,newUserRole);
+
             statement.executeUpdate();
+            log.info("success create new user role"+newUserRole);
         }catch (SQLException e){
-            //logging
+            log.error("error create new user role"+newUserRole,e);
         }
     }
 
-    @Override
-    public UserRole findById(Integer userRoleId) {
-        String selectUserRoleByIdStatment="select * from role where role_id=? and status=0";
-        UserRole userRole=null;
-        try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectUserRoleByIdStatment);
-            statement.setInt(1,userRoleId);
-            ResultSet resultSet=statement.executeQuery();
-            userRole=writeUserRoleToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }
-        return userRole;
-    }
 
     @Override
     public List<UserRole> findAll() {
-        String  selectAllUserRole="select * from role where status=0";
         List<UserRole> userRoles=null;
-
+        log.info("begin finding all active user role");
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectAllUserRole);
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_USER_ROLE);
             ResultSet resultSet=statement.executeQuery();
-            userRoles=writeUserRoleToListFromResultSet(resultSet);
+
+            userRoles=parse(resultSet);
+            log.info("success finding all user role");
         }catch (SQLException e){
-            //logging
+            log.error("error find  all user role",e);
         }
 
         return userRoles;
@@ -70,29 +63,32 @@ public class MySQLUserRoleDAO implements UserRoleDAO {
 
     @Override
     public void update(UserRole updateUserRole) {
-        String updateStatement="Update role set role_name=? where role_id=?";
-
+        log.info("begin update user role");
         try(Connection connection=connectionFactory.getConnection()) {
-            PreparedStatement statement=connection.prepareStatement(updateStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.UPDATE_USER_ROLE);
+
             setUserRoleInStatement(statement,updateUserRole);
+
             statement.setInt(2,updateUserRole.getId());
+
             statement.executeUpdate();
+            log.info("success update user role");
         }catch (SQLException e){
-            //logging
+            log.error("error update  user role"+updateUserRole,e);
         }
     }
 
     @Override
     public void delete(Integer userRoleId) {
-        String deleteStatement="Update role set status=1 where role_id=?";
-
+        log.info("begin delete user role by id"+userRoleId);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(deleteStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.DELETE_USER_ROLE);
             statement.setInt(1,userRoleId);
 
             statement.executeUpdate();
+            log.info("success delete user role by id "+userRoleId);
         }catch (SQLException e){
-            //logging
+            log.error("error delete user role by  id="+userRoleId,e);
         }
     }
 
@@ -100,8 +96,9 @@ public class MySQLUserRoleDAO implements UserRoleDAO {
         statement.setString(1,newUserRole.getRoleName());
     }
 
-    private List<UserRole> writeUserRoleToListFromResultSet(ResultSet resultSet) throws SQLException {
+    private List<UserRole> parse(ResultSet resultSet) throws SQLException {
         List<UserRole> result = new ArrayList<>();
+
         while (resultSet.next()) {
             UserRole newUserRole = new UserRole();
             newUserRole.setId(resultSet.getInt("role_id"));
@@ -109,6 +106,7 @@ public class MySQLUserRoleDAO implements UserRoleDAO {
 
             result.add(newUserRole);
         }
+
         return result;
     }
 

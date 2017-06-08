@@ -11,11 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Created by vitaliy on 23.05.17.
- */
+
 @WebServlet(name="airport",urlPatterns = "/airport/*")
 public class FrontController extends HttpServlet {
+
     protected void doGet(HttpServletRequest request ,HttpServletResponse response)throws ServletException,IOException {
         requestDispatcher(request,response);
     }

@@ -1,7 +1,7 @@
 package ua.training.command.authorization;
 
 import ua.training.command.Command;
-import ua.training.constant.Attributes;
+import ua.training.constant.Actions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -9,9 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 public class LogOut  implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
-        if (request.getSession(Attributes.NO_SESSION_CREATING) != null) {
+        if (request.getSession() != null) {
             request.getSession().invalidate();
         }
-        return "login";
+        return Actions.LOGIN;
     }
 }

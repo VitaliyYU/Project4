@@ -1,6 +1,8 @@
 package ua.training.command.flight;
 
 import ua.training.command.Command;
+import ua.training.constant.Actions;
+import ua.training.constant.Attributes;
 import ua.training.entity.Ticket;
 import ua.training.entity.User;
 import ua.training.service.FlightService;
@@ -18,14 +20,24 @@ public class BuyTicket implements Command {
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException,NullPointerException {
         User user=(User)request.getSession().getAttribute("user");
         if(user==null) {
-            request.setAttribute("command","toLogin");
+            request.setAttribute("command", Actions.LOGIN_REDIRECT);
+            return Actions.LOGIN;
         }
-        Double cost=Double.parseDouble(request.getParameter("cost"));
+        Double cost=Double.parseDouble(request.getParameter(Attributes.COST));
         Integer ticketId=Integer.parseInt(request.getParameter("ticketId"));
-        Integer place =Integer.parseInt(request.getParameter("place"));
+        Integer place =Integer.parseInt(request.getParameter(Attributes.PLACE));
         Integer baggage=0;
         if(!request.getParameter("baggage").equals("")){
-            baggage=Integer.parseInt(request.getParameter("baggage"));
+            try {
+                baggage = Integer.parseInt(request.getParameter(Attributes.BAGGAGE));
+            }catch (NumberFormatException e){
+                request.setAttribute(Attributes.ERROR_MESSAGE_NAME,"Invalid number format");
+                request.setAttribute(Attributes.COST,cost);
+                request.setAttribute("command",Actions.BUY_TICKET_COMMAND);
+                request.setAttribute("ticketId",ticketId);
+                request.setAttribute(Attributes.PLACE,place);
+                return Actions.CONFIRM;
+            }
         }
         FlightService flightService=FlightService.getInstance();
         UserService userService=UserService.getInstance();
@@ -35,7 +47,7 @@ public class BuyTicket implements Command {
         ticket.setId(ticketId);
         ticket.setPlace(place);
 
-        if(request.getParameter("boarding")!=null) {
+        if(request.getParameter(Attributes.BOARDING)!=null) {
             result+=0.2*cost;
             ticket.setPriorityBoarding(true);
         }else{
@@ -48,24 +60,28 @@ public class BuyTicket implements Command {
             ticket.setPriorityRegistration(false);
         }
         if(baggage!=null){
-            result+=20*baggage;
+            result+=0.05*cost*baggage;
             ticket.setBaggage(baggage);
         }
         if(!user.withdraw(cost)){
-            request.setAttribute("error","Not enough money!");
-            request.setAttribute("cost",cost);
-            request.setAttribute("command","buy");
+            request.setAttribute(Attributes.ERROR_MESSAGE_NAME,"Not enough money!");
+            request.setAttribute(Attributes.COST,cost);
+            request.setAttribute("command",Actions.BUY_TICKET_COMMAND);
             request.setAttribute("ticketId",ticketId);
-            request.setAttribute("place",place);
-            return "confirm";
+            request.setAttribute(Attributes.PLACE,place);
+            return Actions.CONFIRM;
         }else {
             ticket.setUserId(user.getId());
 
-            flightService.updateTicket(ticket);
-            userService.pay(user,cost);
-            flightService.deleteTicket(ticketId);
+            if(flightService.updateTicket(ticket)) {
+                userService.pay(user, result);
+                flightService.deleteTicket(ticketId);
+            }else {
+                request.setAttribute(Attributes.ERROR_MESSAGE_NAME,"this  ticket is close!");
+            }
         }
-        request.setAttribute("flights",flightService.findAll());
-        return "flights";
+        request.setAttribute(Attributes.COST,result);
+
+        return "ok";
     }
 }

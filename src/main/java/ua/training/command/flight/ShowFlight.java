@@ -1,6 +1,7 @@
 package ua.training.command.flight;
 
 import ua.training.command.Command;
+import ua.training.constant.Actions;
 import ua.training.entity.Flight;
 import ua.training.service.FlightService;
 
@@ -16,12 +17,17 @@ public class ShowFlight implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if(request.getSession().getAttribute("user")==null) {
-            request.setAttribute("command","toLogin");
+            request.setAttribute("command", Actions.LOGIN_REDIRECT);
+            return Actions.LOGIN;
         }
+
         FlightService flightService=FlightService.getInstance();
+
         List<Flight> flights=flightService.findAll();
-        request.setAttribute("flights",flights);
-        request.setAttribute("command","flights");
-        return "flights";
+
+        request.setAttribute(Actions.FLIGHT_COMMAND,flights);
+        request.setAttribute("command",Actions.FLIGHT_COMMAND);
+
+        return Actions.FLIGHT_COMMAND;
     }
 }

@@ -1,8 +1,6 @@
 package ua.training.entity;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
+
 public class Wallet {
     private Integer id;
     private String code;

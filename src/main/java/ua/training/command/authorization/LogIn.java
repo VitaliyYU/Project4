@@ -18,24 +18,31 @@ public class LogIn  implements Command {
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         String username = getUsernameFromRequest(request);
         String password = getPasswordFromRequest(request);
+
         UserValidator validator = new UserValidator();
         boolean  validLogin=validator.isValidLogin(username);
         boolean validPassword=validator.isValidPassword(password);
+
         if(!validLogin||!validPassword){
             request.setAttribute("error","Invalid  login or password");
             request.setAttribute("command","toLogin");
             return "login";
         }
+
         User user=null;
         user=userService.verifyUser(username,password);
+
         if(user==null) {
             request.setAttribute("error","Invalid  login or password");
             request.setAttribute("command","toLogin");
             return "login";
         }
-        request.getSession().setAttribute(Attributes.USER, user);
+
+        request.getSession().setAttribute(Attributes.USERS, user);
+
         if(user.getUserRole().getRoleName().equals("admin")){
             UserService userService=UserService.getInstance();
             List<User> users=userService.findAll();
@@ -43,6 +50,7 @@ public class LogIn  implements Command {
              request.setAttribute("command","showUsers");
              return "users";
         }
+
         FlightService flightService=FlightService.getInstance();
         request.setAttribute("flights",flightService.findAll());
          return "flights";

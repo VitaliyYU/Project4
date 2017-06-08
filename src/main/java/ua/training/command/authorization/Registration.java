@@ -17,27 +17,33 @@ public class Registration  implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
         User client=new User();
-        client.setLogin(request.getParameter(Attributes.LOGIN));
-        client.setEmail(request.getParameter(Attributes.EMAIL));
+
+        client.setLogin(request.getParameter(Actions.LOGIN));
         client.setName(request.getParameter(Attributes.NAME));
         client.setSurname(request.getParameter(Attributes.SURNAME));
         client.setPassword(request.getParameter(Attributes.PASSWORD));
-        if(client==null)return Actions.REGISTRATION;
+
+        if(client==null)return Actions.TO_REGISTRATION;
+
         UserValidator validator = new UserValidator();
+
         if (!validator.isValid(client)) {
             request.getSession().setAttribute(Attributes.ERROR_MESSAGE_NAME,"Invalid data");
-            request.setAttribute("command","toRegister");
-            return "registration";
+            request.setAttribute("command",Actions.TO_REGISTRATION);
+            return Actions.REGISTRATION_COMMAND;
         }
+
         try {
             userService.addUser(client);
         } catch (RuntimeException e) {
             request.getSession().setAttribute(Attributes.ERROR_MESSAGE_NAME,"Invalid data");
-            request.setAttribute("command","toRegister");
-            return "registration";
+            request.setAttribute("command",Actions.TO_REGISTRATION);
+            return Actions.REGISTRATION_COMMAND;
         }
-        request.setAttribute("command","toLogin");
-        return "login";
+
+        request.setAttribute("command",Actions.LOGIN_REDIRECT);
+
+        return Actions.LOGIN;
     }
 
 }

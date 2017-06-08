@@ -1,17 +1,16 @@
 package ua.training.dao.mysql;
 
+import org.apache.log4j.Logger;
+import ua.training.constant.Query;
 import ua.training.dao.FlightDAO;
 import ua.training.database.ConnectionFactory;
 import ua.training.entity.Flight;
 
 import java.sql.*;
-import java.sql.Date;
-import java.util.*;
-
-/**
- * Created by vitaliy on 21.05.17.
- */
+import java.util.ArrayList;
+import java.util.List;
 public class MySQLFlightDAO implements FlightDAO {
+    private static Logger log=Logger.getLogger(MySQLFlightDAO.class);
 
     private ConnectionFactory connectionFactory;
     private static MySQLFlightDAO flightDAO=new MySQLFlightDAO();
@@ -27,130 +26,122 @@ public class MySQLFlightDAO implements FlightDAO {
 
     @Override
     public void create(Flight newFlight) {
-        String insertFlight="Insert into flight(departure,destination,date,startcost,ticketCount) " +
-                                "values(?,?,?,?,?) ";
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(insertFlight);
+            log.info("Start create flight ");
+            PreparedStatement statement=connection.prepareStatement(Query.INSERT_FLIGHT);
 
             setFlightInStatement(statement, newFlight);
+
             statement.executeUpdate();
+
+            log.info("success create flight");
         }catch (SQLException e){
-            //logging
+            log.error("error create Flight",e);
         }
     }
 
     @Override
-    public Flight findById(Integer flightId) {
-        String selectFlightById="Select * From flight where id=? and status=0";
-        Flight flight=null;
-
-        try(Connection connection  = connectionFactory.getConnection()){
-            PreparedStatement statement = connection.prepareStatement(selectFlightById);
-            statement.setInt(1,flightId);
-            ResultSet resultSet=statement.executeQuery();
-
-            flight=writeFlightToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }
-
-        return  flight;
-    }
-
-    @Override
-    public List<Flight> findByDepartureAndDestinationAndDate(String departure, String destination, Date date) {
-        String selectFlightById="Select * From flight where departure=? and destination=? and date=?  and status=0";
+    public List<Flight> find(String departure, String destination, Date date) {
         List<Flight> flight=null;
+            log.info("begin find Flight  by Departure "+departure+"and destination"+destination+"and date" +date);
+
         try(Connection connection  = connectionFactory.getConnection()){
-            PreparedStatement statement = connection.prepareStatement(selectFlightById);
+            PreparedStatement statement = connection.prepareStatement(Query.SELECT_FLIGHT_BY_ID);
+
+            log.info("success connection on find Flight");
+
             statement.setString(1,departure);
             statement.setString(2,destination);
             statement.setDate(3,date);
+
             ResultSet resultSet=statement.executeQuery();
-            flight=writeFlightToListFromResultSet(resultSet);
+
+            flight=parse(resultSet);
+
+            log.info("success find  flight by departure"+departure+"and destination"+destination+"and date"+date);
         }catch (SQLException e){
-            //logging
+            log.error("error find by  departure and destination",e);
         }
         return  flight;
     }
 
     @Override
-    public List<Flight> findByDepartureAndDestination(String departure, String destination) {
-        String selectFlightById="Select * From flight where departure=? and destination=?   and status=0";
+    public List<Flight> find(String departure, String destination) {
+
         List<Flight> flight=null;
+
+        log.info("begin find Flight  by Departure "+departure+"and destination"+destination);
+
         try(Connection connection  = connectionFactory.getConnection()){
-            PreparedStatement statement = connection.prepareStatement(selectFlightById);
+            log.info("success connection on find Flight");
+
+            PreparedStatement statement = connection.prepareStatement(Query.SELECT_FLIGHT_BY_DEPARTURE_AND_DESTINATION);
+
             statement.setString(1,departure);
             statement.setString(2,destination);
 
             ResultSet resultSet=statement.executeQuery();
-            flight=writeFlightToListFromResultSet(resultSet);
+
+            flight=parse(resultSet);
+            log.info("success find Flight  by Departure "+departure+"and destination"+destination+"and date" );
+
         }catch (SQLException e){
-            //logging
+            log.error("error find flight by departure and destination:"+departure+","+destination,e);
+
         }
         return  flight;
     }
 
     @Override
     public List<Flight> findAll() {
-        String selectAllFlight="select * from flight where status=0";
+
+        log.info("begin find all active Flight ");
+
         List<Flight> allFlight=null;
 
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectAllFlight);
+            log.info("success connection find all Flight");
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_ALL_ACTIVE_FLIGHT);
             ResultSet resultSet=statement.executeQuery();
 
-            allFlight=writeFlightToListFromResultSet(resultSet);
+            allFlight=parse(resultSet);
+            log.info("success find all flight");
         }catch (SQLException e){
-            //logging
+            log.error("error find all",e);
         }
 
         return allFlight;
     }
 
-    @Override
-    public Flight findByCode(String code) {
-        String selectFlightById="Select * From flight where code=? and status=0";
-        Flight flight=null;
-
-        try(Connection connection  = connectionFactory.getConnection()){
-            PreparedStatement statement = connection.prepareStatement(selectFlightById);
-            statement.setString(1,code);
-            ResultSet resultSet=statement.executeQuery();
-
-            flight=writeFlightToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }
-
-        return  flight;
-
-    }
 
     public void update(Flight updateFlight) {
-        String updateFlightStatement="Update flight SET departure=?,destination=?,date=?,startcost=?,flight_duration=?,flight_code=? where flight_id=?";
 
+        log.info("begin update flight"+updateFlight);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(updateFlightStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.UPDATE_FLIGHT);
 
             setFlightInStatement(statement,updateFlight);
+
             statement.setInt(7,updateFlight.getId());
             statement.executeUpdate();
+            log.info("success update flight");
         }catch (SQLException e) {
-            //logging
+            log.error("error update flight"+updateFlight);
         }
     }
     @Override
     public void delete(Integer flightId) {
-        String deleteStatement="Update flight set status=1 where flight_id=?";
 
+        log.info("begin delete flight by id "+flightId);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(deleteStatement);
+            log.info("success connection");
+            PreparedStatement statement=connection.prepareStatement(Query.DELETE_FLIGHT);
             statement.setInt(1,flightId);
 
             statement.executeUpdate();
+            log.info("success delete flight by id="+flightId);
         }catch (SQLException e){
-            //logging
+            log.error("error delete flight by id"+flightId,e);
         }
     }
 
@@ -162,7 +153,7 @@ public class MySQLFlightDAO implements FlightDAO {
         statement.setInt(5,newFlight.getTicketCount());
     }
 
-    private List<Flight> writeFlightToListFromResultSet(ResultSet resultSet) throws SQLException {
+    private List<Flight> parse(ResultSet resultSet) throws SQLException {
         List<Flight> result = new ArrayList<>();
 
         while (resultSet.next()) {

@@ -1,8 +1,5 @@
 package ua.training.dao.mysql;
 
-/**
- * Created by vitaliy on 20.05.17.
- */
 public class MySQLDAOFactory {
     private  MySQLDAOFactory(){
 

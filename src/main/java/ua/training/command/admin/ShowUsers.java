@@ -1,6 +1,8 @@
 package ua.training.command.admin;
 
 import ua.training.command.Command;
+import ua.training.constant.Actions;
+import ua.training.constant.Attributes;
 import ua.training.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,12 +11,16 @@ import java.io.IOException;
 
 
 public class ShowUsers implements Command {
+
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User user =(User)request.getSession().getAttribute("user");
-        if(!user.getUserRole().getRoleName().equals("admin")){
-            request.setAttribute("command","toLogin");
+
+        if(!user.getUserRole().getRoleName().equals(Attributes.ADMIN)){
+            request.setAttribute("command", Actions.LOGIN_REDIRECT);
+            return Actions.LOGIN;
         }
-        return "users";
+
+        return Attributes.USER;
     }
 }

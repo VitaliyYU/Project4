@@ -1,5 +1,7 @@
 package ua.training.dao.mysql;
 
+import org.apache.log4j.Logger;
+import ua.training.constant.Query;
 import ua.training.dao.TicketDAO;
 import ua.training.database.ConnectionFactory;
 import ua.training.entity.Ticket;
@@ -11,10 +13,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
+
 public class MySQLTicketDAO implements TicketDAO {
+
+    private static final Logger log=Logger.getLogger(MySQLTicketDAO.class);
+
     private ConnectionFactory connectionFactory;
     private static MySQLTicketDAO ticketDAO=new MySQLTicketDAO();
 
@@ -28,14 +31,16 @@ public class MySQLTicketDAO implements TicketDAO {
 
     @Override
     public void create(Ticket newTicket) {
-        String insertUserRole="insert into ticket " +
-                "(place ,user_id , flight_id, baggage,  priority_registration, priority_boarding) " +
-                "values(?,?,?,?,?,?)";
+        log.info("begin create ticket");
 
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(insertUserRole);
+            log.info("success connection on TicketDAO");
+            PreparedStatement statement=connection.prepareStatement(Query.INSERT_TICKET);
+
             setTicketInStatement(statement,newTicket);
+
             statement.executeUpdate();
+            log.info("success create Ticket"+newTicket);
         }catch (SQLException e){
             //logging
         }
@@ -44,20 +49,20 @@ public class MySQLTicketDAO implements TicketDAO {
 
     @Override
     public void create(Integer flightId,Integer n) {
-        String insertTicket="insert into ticket " +
-                "(place , flight_id) " +
-                "values(?,?)";
+        log.info("begin auto create "+n+" Ticket ");
 
         try(Connection connection=connectionFactory.getConnection()){
             for(int i=0;i<n;++i) {
-
-                PreparedStatement statement = connection.prepareStatement(insertTicket);
+                log.info("success connection on method auto create "+n+"ticket");
+                PreparedStatement statement = connection.prepareStatement(Query.CREATE_TICKET);
                 statement.setInt(1,i+1);
                 statement.setInt(2,flightId);
+
                 statement.executeUpdate();
+                log.info("success create "+n+" ticket");
             }
         }catch (SQLException e){
-            //logging
+            log.error("error auto create "+n+" ticket",e);
         }
 
     }
@@ -65,72 +70,89 @@ public class MySQLTicketDAO implements TicketDAO {
 
     @Override
     public List<Ticket> findByUserId(Integer userId) {
-        String selectTicketByUserId="select * from (ticket inner join flight on ticket.flight_id=flight.flight_id) " +
-                "where user_id=? and flight.status=0";
         List<Ticket> result=null;
+
+        log.info("begin find Ticket by  User id "+ userId);
         try(Connection connection=connectionFactory.getConnection()){
-            result=selectById(connection,selectTicketByUserId,userId);
+            result=selectById(connection,Query.SELECT_TICKET_BY_USER_ID,userId);
+
+            log.info("success find Ticket by user id "+userId);
         }catch (SQLException e){
-            //logging
+            log.error("error find  by  user id "+userId,e);
         }
 
         return result;
     }
+
     @Override
-    public Integer countAvaibleTicket(Integer id){
-        String count="select count(ticket_id)  from ticket where status=0";
+    public Integer countAvailableTicket(Integer id){
+
         Integer result=0;
+        log.info("begin counting available ticket by flight id= "+id);
+
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(count);
+            PreparedStatement statement=connection.prepareStatement(Query.COUNT_AVAIBLE_TICKET);
             ResultSet resultSet=statement.executeQuery();
+
             resultSet.next();
             result=resultSet.getInt("count(ticket_id)");
-            return result;
+            log.info("success counting  available ticket by flight id= "+id);
         }catch (SQLException e){
-            ///logging
+            log.error("error counting ticket by  flight id= "+id,e);
         }
         return result;
     }
+
     @Override
     public List<Ticket> findAllByFlightId(Integer id) {
-        String selectAllTicket="select * from ticket where status=0 and flight_id=?";
+
         List<Ticket> allActiveTicket=null;
+        log.info("begin find all ticket by flight id  ="+id);
         try(Connection connection=connectionFactory.getConnection()){
-            allActiveTicket= selectById(connection,selectAllTicket,id);
+            allActiveTicket= selectById(connection,Query.SELECT_TICKET_BY_FLIGHT_ID,id);
+            log.info("success find ticket by  flight id ="+id);
         }catch (SQLException e){
-            //logging
+            log.error("error find ticket by flight id="+id);
         }
 
         return allActiveTicket;
     }
 
     @Override
-    public void update(Ticket updateTicket) {
-        String updateTicketStatement="Update ticket SET place=? ,baggage=?,priority_boarding=?,priority_registration=?,user_id=? where ticket_id=?";
-
+    public Boolean update(Ticket updateTicket) {
+            log.info("begin updating ticket"+updateTicket);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(updateTicketStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.UPDATE_TICKET);
 
             setTicketInStatement(statement,updateTicket);
             statement.setInt(5,updateTicket.getUserId());
             statement.setInt(6,updateTicket.getId());
-            statement.executeUpdate();
+
+            if(statement.executeUpdate()>0){
+                log.info("success update ticket"+updateTicket);
+                return true;
+            }else {
+                log.info("this ticket is already update");
+                return false;
+            }
         }catch (SQLException e) {
-            //logging
+            log.error("error updating ticket"+updateTicket);
         }
+        return false;
     }
 
     @Override
     public void delete(Integer ticketId) {
-        String deleteStatement="Update ticket set status=1 where ticket_id=?";
+        log.info("begin delete ticket by id"+ticketId);
 
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(deleteStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.DELETE_TICKET);
             statement.setInt(1,ticketId);
 
             statement.executeUpdate();
+            log.info("success delete ticket by id"+ticketId);
         }catch (SQLException e){
-            //logging
+            log.error("error delete ticket by id="+ticketId);
         }
     }
 
@@ -143,8 +165,9 @@ public class MySQLTicketDAO implements TicketDAO {
         statement.setInt(6,updateTicket.getId());
     }
 
-    private List<Ticket> writeTicketToListFromResultSet(ResultSet resultSet) throws SQLException {
+    private List<Ticket> parse(ResultSet resultSet) throws SQLException {
         List<Ticket> result = new ArrayList<>();
+
         while (resultSet.next()) {
             Ticket newTicket = new Ticket();
             newTicket.setId(resultSet.getInt("ticket_id"));
@@ -162,6 +185,6 @@ public class MySQLTicketDAO implements TicketDAO {
         PreparedStatement statement=connection.prepareStatement(selectAllTicket);
         statement.setInt(1,id);
         ResultSet result=statement.executeQuery();
-        return writeTicketToListFromResultSet(result);
+        return parse(result);
     }
 }

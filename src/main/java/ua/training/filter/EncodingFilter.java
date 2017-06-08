@@ -3,9 +3,7 @@ package ua.training.filter;
 import javax.servlet.*;
 import java.io.IOException;
 
-/**
- * Created by vitaliy on 03.06.17.
- */
+
     public class EncodingFilter implements Filter {
 
         public static final String UTF_8 = "UTF-8";

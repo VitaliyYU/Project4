@@ -4,13 +4,16 @@ import ua.training.entity.User;
 
 import java.util.List;
 
-/**
- * Created by vitaliy on 23.05.17.
- */
+
 public interface UserDAO {
     void create(User newUser);
-    User findById(Integer id);
-    User findByLogin(String login);
+
+    /**
+     *
+     * @param login user login
+     * @param password secret key
+     * @return user with current {@login} and {@password}
+     */
     User findByLoginAndPassword(String login,String password);
     List<User> findAll();
     void update(User updateUser);

@@ -1,5 +1,7 @@
 package ua.training.dao.mysql;
 
+import org.apache.log4j.Logger;
+import ua.training.constant.Query;
 import ua.training.dao.WalletDAO;
 import ua.training.database.ConnectionFactory;
 import ua.training.entity.Wallet;
@@ -11,11 +13,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
 public class MySQLWalletDAO implements WalletDAO {
+    private  static final Logger log=Logger.getLogger(MySQLWalletDAO.class);
+
     private ConnectionFactory connectionFactory;
+
     private static MySQLWalletDAO walletDAO=new MySQLWalletDAO();
 
 
@@ -28,43 +30,53 @@ public class MySQLWalletDAO implements WalletDAO {
     }
     @Override
     public void create(String code) {
-        String insertWallet="insert into wallet(code) values(?)";
-
+        log.info("begin create wallet with code="+code);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(insertWallet);
+            PreparedStatement statement=connection.prepareStatement(Query.INSERT_WALLET);
+
             statement.setString(1,code);
+
             statement.executeUpdate();
+            log.info("success create  wallet with code"+code);
         }catch (SQLException e){
-            //logging
+            log.error("error by creating wallet with code="+code,e);
         }
     }
 
     @Override
-    public Wallet findByCode(String code) {
-        String selectWalletByIdStatment="select * from wallet where code=? and status=0";
+    public Wallet find(String code) {
+
         Wallet wallet=null;
+
+        log.info("begin find wallet by code"+code);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectWalletByIdStatment);
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_WALLET);
+
             statement.setString(1,code);
+
             ResultSet resultSet=statement.executeQuery();
-            wallet=writeWalletToListFromResultSet(resultSet).get(0);
+            wallet=parse(resultSet).get(0);
+            log.info("success find  wallet by code="+code);
         }catch (SQLException e){
-            //logging
+            log.error("error find wallet with code="+code,e);
+        }catch (IndexOutOfBoundsException e){
+            log.error("don`t  find wallet with code"+code,e);
         }
         return wallet;
     }
 
     @Override
     public List<Wallet> findAll() {
-        String  selectAllWallet="select * from wallet where status=0";
+        log.info("begin finding  all wallet");
         List<Wallet> wallets=null;
 
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectAllWallet);
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_ALL_WALLET);
             ResultSet resultSet=statement.executeQuery();
-            wallets=writeWalletToListFromResultSet(resultSet);
+            wallets=parse(resultSet);
+            log.info("success find all wallet");
         }catch (SQLException e){
-            //logging
+            log.error("error finding all wallet",e);
         }
 
         return wallets;
@@ -72,35 +84,38 @@ public class MySQLWalletDAO implements WalletDAO {
 
     @Override
     public void update(Wallet updateWallet) {
-        String updateStatment="Update wallet set count=? where code=?";
-
+        log.info("begin updating  wallet "+updateWallet);
         try(Connection connection=connectionFactory.getConnection()) {
-            PreparedStatement statement=connection.prepareStatement(updateStatment);
+            PreparedStatement statement=connection.prepareStatement(Query.UPDATE_WALLET);
+
             statement.setDouble(1,updateWallet.getCount());
             statement.setString(2,updateWallet.getCode());
+
             statement.executeUpdate();
+            log.info("success update wallet "+updateWallet);
         }catch (SQLException e){
-            //logging
+            log.error("error update wallet",e);
         }
     }
 
     @Override
     public void delete(Integer walletId) {
-        String deleteStatement="Update wallet set status=1 where wallet_id=?";
-
+        log.info("begin delete wallet with id="+walletId);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(deleteStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.DELETE_WALLET);
+
             statement.setInt(1,walletId);
 
             statement.executeUpdate();
+            log.info("success delete wallet with id="+walletId);
         }catch (SQLException e){
-            //logging
+            log.error("error delete wallet with id "+walletId,e);
         }
     }
 
 
 
-    private List<Wallet> writeWalletToListFromResultSet(ResultSet resultSet) throws SQLException {
+    private List<Wallet> parse(ResultSet resultSet) throws SQLException {
         List<Wallet> result = new ArrayList<>();
 
         while (resultSet.next()) {
@@ -110,6 +125,7 @@ public class MySQLWalletDAO implements WalletDAO {
             newWallet.setCount(resultSet.getDouble("count"));
             result.add(newWallet);
         }
+
         return result;
     }
 }

@@ -7,21 +7,15 @@ import java.sql.Date;
  */
 public class Flight {
     private Integer id;
-
-    public String getFlightCode() {
-        return flightCode;
-    }
-
-    public void setFlightCode(String flightCode) {
-        this.flightCode = flightCode;
-    }
-
-    private String  flightCode;
     private String departure;
     private String destination;
     private Date date;
     private int ticketCount;
     private Double startCost;
+
+    public Flight() {
+    }
+
 
     public int getTicketCount() {
         return ticketCount;
@@ -29,10 +23,6 @@ public class Flight {
 
     public void setTicketCount(int ticketCount) {
         this.ticketCount = ticketCount;
-    }
-
-
-    public Flight() {
     }
 
     public Integer getId() {

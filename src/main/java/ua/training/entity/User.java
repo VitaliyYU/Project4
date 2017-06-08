@@ -2,15 +2,12 @@ package ua.training.entity;
 
 import java.io.Serializable;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
+
 public class User implements Serializable{
     private Integer id;
     private String login;
     private String name;
     private String surname;
-    private String email;
     private String password;
     private Wallet wallet;
     private UserRole userRole;
@@ -20,7 +17,6 @@ public class User implements Serializable{
         this.login = login;
         this.name = name;
         this.surname = surname;
-        this.email = email;
     }
 
     public String getPassword() {
@@ -82,13 +78,6 @@ public class User implements Serializable{
         this.surname = surname;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public boolean withdraw(Double price){
         if(wallet.getCount()>=price){

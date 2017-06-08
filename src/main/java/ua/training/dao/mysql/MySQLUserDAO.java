@@ -1,5 +1,7 @@
 package ua.training.dao.mysql;
 
+import org.apache.log4j.Logger;
+import ua.training.constant.Query;
 import ua.training.dao.UserDAO;
 import ua.training.database.ConnectionFactory;
 import ua.training.entity.User;
@@ -13,10 +15,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
+
 public class MySQLUserDAO implements UserDAO {
+    private static final Logger log=Logger.getLogger(MySQLUserDAO.class);
+
     private ConnectionFactory connectionFactory;
     private static MySQLUserDAO userDAO=new MySQLUserDAO();
 
@@ -29,64 +31,37 @@ public class MySQLUserDAO implements UserDAO {
     }
     @Override
     public void create(User newUser) {
-        String insertUser="Insert into user " +
-                "(login ,password ,name, surname)" +
-                " values(?,?,?,?)";
+        log.info("begin creating user "+newUser);
+
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(insertUser);
+
+            PreparedStatement statement=connection.prepareStatement(Query.INSERT_USER);
             setUserInStatement(statement,newUser);
-            System.out.println(statement.executeUpdate());
+            statement.executeUpdate();
+            log.info("success create user"+newUser);
         }catch (SQLException e){
-            ///logging
+            log.error("error create user "+newUser,e);
         }
-
-    }
-    @Override
-    public User findById(Integer userId) {
-        String selectUserById="Select * from ((user inner join wallet on user.wallet_id=wallet.wallet_id)inner join user_role on user.role_id=user_role.role_id ) where user.user_id=? and user.status=0";
-        User newUser=null;
-        try (Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectUserById);
-            statement.setInt(1,userId);
-            ResultSet resultSet=statement.executeQuery();
-
-            newUser=writeUserToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }
-
-        return newUser;
     }
 
-    @Override
-    public User findByLogin(String login) {
-        String selectUserByLogin="Select * from((user inner join wallet on user.wallet_id=wallet.wallet_id)inner join user_role on user.role_id=user_role.role_id ) where login=? and user.status=0";
-        User newUser=null;
-        try (Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectUserByLogin);
-            statement.setString(1,login);
-            ResultSet resultSet=statement.executeQuery();
-            newUser=writeUserToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }
-
-        return newUser;
-
-    }
     public User findByLoginAndPassword(String login,String password){
-        String selectUserByLogin="Select * from((user inner join wallet on user.wallet_id=wallet.wallet_id)inner join user_role on user.role_id=user_role.role_id ) where login=? and password=?  and user.status=0";
         User newUser=null;
+
+        log.info("begin find user by login="+login+" and  password ="+password);
+
         try (Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectUserByLogin);
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_USER_BY_LOGIN_AND_PASSWORD);
+
             statement.setString(1,login);
             statement.setString(2,password);
-            ResultSet resultSet=statement.executeQuery();
-            newUser=writeUserToListFromResultSet(resultSet).get(0);
-        }catch (SQLException e){
-            //logging
-        }catch (IndexOutOfBoundsException e){
 
+            ResultSet resultSet=statement.executeQuery();
+            newUser=parse(resultSet).get(0);
+            log.info("succes find User by login="+login+"and password="+password);
+        }catch (SQLException e){
+            log.error("error by find login="+login+" and password="+password,e);
+        }catch (IndexOutOfBoundsException e){
+            log.error("don`t find user with login="+login+"and password="+password);
         }
         return newUser;
 
@@ -94,18 +69,21 @@ public class MySQLUserDAO implements UserDAO {
 
     @Override
     public List<User> findAll() {
-        String selectAllUser="select * from ((user left join wallet on user.wallet_id=wallet.wallet_id)left join user_role on user.role_id=user_role.role_id ) where user.status=0";
         List<User> allUser=null;
 
+        log.info("begin finding all users");
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(selectAllUser);
-            allUser=new ArrayList<User>();
+            PreparedStatement statement=connection.prepareStatement(Query.SELECT_ALL_USER);
+
+            allUser=new ArrayList<>();
+
             ResultSet resultSet=statement.executeQuery();
 
-            allUser=writeUserToListFromResultSet(resultSet);
+            allUser=parse(resultSet);
+            log.info("success find all users");
+
         }catch (SQLException e){
-            e.printStackTrace();
-            //logging
+            log.error("error in finding all active users",e);
         }
 
         return allUser;
@@ -113,37 +91,39 @@ public class MySQLUserDAO implements UserDAO {
 
     @Override
     public void update(User updateUser) {
-        String updateUserStatement="Update user SET login=? , name=?,surname=?,wallet_id=? where user_id=?";
-
+        log.info("begin update User "+updateUser);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(updateUserStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.UPDATE_USER);
+
             statement.setString(1,updateUser.getLogin());
             statement.setString(2,updateUser.getName());
             statement.setString(3,updateUser.getSurname());
             statement.setInt(4,updateUser.getWallet().getId());
             statement.setInt(5,updateUser.getId());
+
             statement.executeUpdate();
+            log.info("success update user"+updateUser);
         }catch (SQLException e) {
-            //logging
+            log.error("error update  user"+updateUser,e);
         }
     }
 
     @Override
     public void delete(Integer userId) {
-        String deleteStatement="Update user set status=1 where user_id=?";
-
+        log.info("begin delete user by id="+userId);
         try(Connection connection=connectionFactory.getConnection()){
-            PreparedStatement statement=connection.prepareStatement(deleteStatement);
+            PreparedStatement statement=connection.prepareStatement(Query.DELETE_USER);
             statement.setInt(1,userId);
 
             statement.executeUpdate();
+            log.info("success delete user by id= "+userId);
         }catch (SQLException e){
-            //logging
+            log.error("error delete user by id"+userId,e);
         }
     }
 
-    private List<User> writeUserToListFromResultSet(ResultSet resultSet) throws SQLException {
-        List<User> result = new ArrayList<User>();
+    private List<User> parse(ResultSet resultSet) throws SQLException {
+        List<User> result = new ArrayList<>();
 
         while (resultSet.next()) {
             User newUser = new User();

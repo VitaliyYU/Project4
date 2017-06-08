@@ -2,9 +2,6 @@ package ua.training.entity;
 
 import java.io.Serializable;
 
-/**
- * Created by vitaliy on 21.05.17.
- */
 public class UserRole implements Serializable {
     private Integer id;
     private String roleName;

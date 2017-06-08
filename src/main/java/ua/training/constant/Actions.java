@@ -1,33 +1,27 @@
 package ua.training.constant;
 
 
-public class Actions {
-    public static final String AIRPORTS = "airports";
-    public static final String HOME = "/";
-    public static final String FLIGHTS = "flights";
-    public static final String CREATE_ORDER = "create-order";
-    public static final String ORDER = "order";
-    public static final String CONFIRM = "confirm";
+public interface Actions {
+     String REGISTRATION_COMMAND="registration";
+     String FLIGHT_COMMAND="flights";
+     String BUY_TICKET_COMMAND="buy";
+     String TO_REGISTRATION="toRegister";
+     String TICKETS="tickets";
+     String CONFIRM="confirm";
+     String SEARCH="search";
+     String SHOW_USER="showUsers";
+     String DELETE_USER="deleteUser";
+     String ADD_FLIGHT_REDIRECTION="addFlightRedirection";
+     String ADD_FLIGHT="addFlight";
+     String REFILL="refill";
+     String REFILL_REDIRECT="refillRedirect";
+     String SHOW_FLIGHT="showFlight";
+     String USER_TICKET="userTicket";
+     String ADD_WALLET="addWallet";
+     String ADD_WALLET_REDIRECT="addWalletRedirection";
+     String LOGIN="login";
+     String LOGOUT="LogOut";
+     String ChangeLanguage="changeLocale";
+     String LOGIN_REDIRECT="toLogin";
 
-    public static final String LOGIN = "login";
-    public static final String LOGOUT = "logout";
-    public static final String REGISTRATION = "registration";
-    public static final String ENTER = "enter";
-    public static final String TO_REGISTER = "toRegister";
-    public static final String COMPLETED = "complete";
-
-    public static final String AIRPORTS_CONTROL = "/management/airports-control";
-    public static final String ADD_AIRPORT = "/management/add-airport";
-    public static final String UPDATE_AIRPORT = "/management/update-airport";
-    public static final String DELETE_AIRPORT = "/management/delete-airport";
-    public static final String ADDITIONAL_SERVICES_CONTROL = "/management/additional-services";
-    public static final String UPDATE_ADDITIONAL_SERVICE = "/management/update-additional-service";
-    public static final String DELETE_ADDITIONAL_SERVICE = "/management/delete-additional-service";
-    public static final String ADD_ADDITIONAL_SERVICE = "/management/add-additional-service";
-    public static final String UPDATE_FLIGHT = "/management/update-flight";
-    public static final String DELETE_FLIGHT = "/management/delete-flight";
-    public static final String ADD_FLIGHT = "/management/add-flight";
-    public static final String FLIGHTS_CONTROL = "/management/flights-control";
-    public static final String CLIENTS_CONTROL = "/management/clients-control";
-    public static final String REFILL_CLIENT_ACCOUNT = "/management/refill-account";
 }

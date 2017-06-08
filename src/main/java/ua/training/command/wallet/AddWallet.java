@@ -18,14 +18,20 @@ public class AddWallet implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String code=request.getParameter("code");
+
         UserService userService=UserService.getInstance();
         userService.createWallet(code);
+
         User user=(User)request.getSession().getAttribute("user");
+
         Wallet wallet=userService.findWalletByCode(code);
         user.setWallet(wallet);
+
         userService.update(user);
+
         request.getSession().setAttribute("user",user);
         request.setAttribute("flights", FlightService.getInstance().findAll());
+
         return "flights";
     }
 }

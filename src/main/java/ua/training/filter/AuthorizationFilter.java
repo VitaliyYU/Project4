@@ -1,11 +1,9 @@
 package ua.training.filter;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-
-/**
- * Created by vitaliy on 03.06.17.
- */public class AuthorizationFilter implements Filter {
+public class AuthorizationFilter implements Filter {
 
 
     @Override
@@ -16,9 +14,9 @@ import java.io.IOException;
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
        String command=request.getParameter("command");
-       if(command==null) {
-           request.setAttribute("command","toLogin");
-       }
+        if(((HttpServletRequest)request).getSession().getAttribute("user")==null && command!="toLogin"){
+            ( request).getRequestDispatcher("index.jsp").forward(request,response);
+        }
        chain.doFilter(request,response);
     }
 

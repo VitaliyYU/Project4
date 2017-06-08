@@ -11,6 +11,11 @@ public class Ticket implements Serializable{
     private Integer flightId;
     private Integer userId;
     private Integer baggage;
+    private Boolean priorityRegistration;
+    private Boolean priorityBoarding;
+
+    public Ticket() {
+    }
 
 
     public Integer getUserId() {
@@ -21,14 +26,8 @@ public class Ticket implements Serializable{
         this.userId = userId;
     }
 
-    private Boolean priorityRegistration;
-    private Boolean priorityBoarding;
-
     public Integer getId() {
         return id;
-    }
-
-    public Ticket() {
     }
 
     public void setId(Integer id) {
@@ -76,7 +75,4 @@ public class Ticket implements Serializable{
         this.priorityBoarding = priorityBoarding;
     }
 
-    public double getTotalPrice(){
-        return 100;
-    }
 }

@@ -9,7 +9,6 @@ import java.util.List;
  */
 public interface UserRoleDAO {
     void create(UserRole newRole);
-    UserRole findById(Integer id);
     List<UserRole> findAll();
     void update(UserRole updateRole);
     void delete(Integer id);
