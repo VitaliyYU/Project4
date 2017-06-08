@@ -12,9 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * Created by vitaliy on 05.06.17.
- */
+
 public class BuyTicket implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws IOException,NullPointerException {
@@ -48,19 +46,19 @@ public class BuyTicket implements Command {
         ticket.setPlace(place);
 
         if(request.getParameter(Attributes.BOARDING)!=null) {
-            result+=0.2*cost;
+            result+=Attributes.BOARDING_COEF*cost;
             ticket.setPriorityBoarding(true);
         }else{
             ticket.setPriorityBoarding(false);
         }
         if(request.getParameter("registration")!=null){
-            result+=0.3*cost;
+            result+=Attributes.REGISTRATRATION_COEF*cost;
             ticket.setPriorityRegistration(true);
         }else{
             ticket.setPriorityRegistration(false);
         }
         if(baggage!=null){
-            result+=0.05*cost*baggage;
+            result+=Attributes.BAGGAGE_COEF*cost*baggage;
             ticket.setBaggage(baggage);
         }
         if(!user.withdraw(cost)){

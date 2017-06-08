@@ -38,5 +38,8 @@ public interface Attributes {
     String PLACE ="place" ;
      String BAGGAGE ="baggage" ;
      String BOARDING = "boarding";
+    Double BAGGAGE_COEF =0.05 ;
+    Double REGISTRATRATION_COEF =0.3 ;
+     Double BOARDING_COEF = 0.2;
 }
 
